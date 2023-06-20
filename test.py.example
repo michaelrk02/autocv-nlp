@@ -7,7 +7,7 @@ def test_recognizer():
     #input_recognizer = "pengalaman_jobdesc"
     #input_sentence = "tugas saya di sana adalah memimpin rapat divisi, merancang proker, bonding rutin supaya menjalin kekeluargaan, dan menyusun laporan mingguan"
 
-    recognizer = Recognizer("recognizers/%s.cfg" % input_recognizer)
+    recognizer = Recognizer("grammars/%s.cfg" % input_recognizer)
     tokens = tokenize(input_sentence)
     syntax_tree = recognizer.recognize(tokens)
 

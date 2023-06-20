@@ -38,7 +38,14 @@ initialize_dataset(dataset_source_file, [
         "enable": True,
         "label": "pengalaman_jobdesc",
         "semantic": {"Tindakan": ["X"], "KalimatEfek": ["X"], "KalimatTujuan": ["X"]},
-        "frequency": 0.025,
+        "frequency": 0.0025,
+        "depth": 6
+    },
+    {
+        "enable": True,
+        "label": "keterampilan",
+        "semantic": {"ItemKeterampilan": ["X"]},
+        "frequency": 0.001,
         "depth": 6
     }
 ])

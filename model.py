@@ -95,7 +95,7 @@ class Generator:
         self.identifier = identifier
         self.depth = depth
 
-    def generate(self, semantic, return_list = False, override = False):
+    def generate(self, semantic, return_iter = False, override = False):
         productions = []
         if not override:
             productions = self.grammar.productions()
@@ -106,51 +106,66 @@ class Generator:
                     productions.append(p)
 
         additional_productions = []
-        keywords = {}
         for k, words in semantic.variables.items():
-            keywords[k] = set()
             for w in words:
-                additional_productions.append(Production(Nonterminal(k), w.split()))
-                keywords[k].add(w)
+                additional_productions.append(Production(Nonterminal(k), [w]))
 
         grammar = CFG(Nonterminal(self.identifier), productions + additional_productions)
 
-        candidates = []
+        if return_iter:
+            return generate(grammar, depth = self.depth)
+
+        candidate_count = 0
         for t in generate(grammar, depth = self.depth):
-            s = " ".join(t)
+            if semantic.validate(t):
+                candidate_count += 1
 
-            is_complete = True
-            for k, words in keywords.items():
-                exists = False
-                for w in words:
-                    if w in s:
-                        exists = True
-                        break
+        candidate_index = 0
+        candidate_choose = random.randint(0, candidate_count - 1)
+        for t in generate(grammar, depth = self.depth):
+            if semantic.validate(t):
+                if candidate_index == candidate_choose:
+                    return " ".join(t)
 
-                if not exists:
-                    is_complete = False
-                    break
+                candidate_index += 1
 
-            if is_complete:
-                candidates.append(s)
-
-        if return_list:
-            return candidates
-
-        if len(candidates) == 0:
-            return ""
-
-        return random.choice(candidates)
+        return ""
 
 class SemanticConstructor:
     def __init__(self, template = None):
         self.variables = template if not template is None else {}
+        self._update_keywords()
 
-    def set(self, variable, value):
-        if variable not in self.variables:
-            self.variables[variable] = []
+    def set(self, variable, values):
+        self.variables[variable] = values
+        self._update_keywords()
 
-        self.variables[variable].append(value)
+    def validate(self, sentence):
+        if type(sentence) is list:
+            sentence = " ".join(sentence)
+
+        is_complete = True
+        for k, words in self.keywords.items():
+            exists = False
+            for w in words:
+                if w in sentence:
+                    exists = True
+                    break
+
+            if not exists:
+                is_complete = False
+                break
+
+        return is_complete
+
+    def _update_keywords(self):
+        keywords = {}
+        for k, words in self.variables.items():
+            keywords[k] = set()
+            for w in words:
+                keywords[k].add(w)
+
+        self.keywords = keywords
 
 class NaiveBayesClassifier:
     def __init__(self, model):
@@ -247,29 +262,6 @@ class NaiveBayesClassifier:
 
         return NaiveBayesClassifier(model)
 
-def similarity(a, b):
-    vocab = set()
-    for w in _tokenize(a) + _tokenize(b):
-        vocab.add(w.lower())
-
-    vocab_map = {}
-    index = 0
-    for v in vocab:
-        vocab_map[v] = index
-        index += 1
-
-    a_vector = [0] * len(vocab)
-    for w in _tokenize(a):
-        a_vector[vocab_map[w]] += 1
-    a_vector = np.array(a_vector)
-
-    b_vector = [0] * len(vocab)
-    for w in _tokenize(b):
-        b_vector[vocab_map[w]] += 1
-    b_vector = np.array(b_vector)
-
-    return np.dot(a_vector, b_vector) / (norm(a_vector) * norm(b_vector))
-
 def tokenize(sentence):
     return [s.lower() for s in re.findall(r"[^\s.:,]+|[\.:,]", sentence)]
 
@@ -284,6 +276,3 @@ def chunk(tokens):
             segment.append(t)
 
     return segments
-
-def smoother(x):
-    return 0.5 * math.tanh(4.0 * x - 2.0) + 0.5

@@ -2,18 +2,15 @@ import random
 import csv
 
 from model import Generator, NaiveBayesClassifier, SemanticConstructor, tokenize
-
-def nrandom(precision = 6):
-    min_value = 0
-    max_value = 10 ** precision
-    return random.randint(min_value, max_value) / max_value
+from util import nrandom
 
 def generate_dataset(label, generator, semantic_constructor, sampling_frequency = 0.5):
     dataset = []
-    dataset_tmp = generator.generate(semantic_constructor, True, True)
-    for data in dataset_tmp:
-        if nrandom() < sampling_frequency:
-            dataset.append({"text": data, "label": label})
+    dataset_iter = generator.generate(semantic_constructor, True, True)
+    for data in dataset_iter:
+        if semantic_constructor.validate(data):
+            if nrandom() < sampling_frequency:
+                dataset.append({"text": " ".join(data), "label": label})
 
     print(" generate(%s) -> %d" % (label, len(dataset)))
 
@@ -39,7 +36,7 @@ def initialize_dataset(store_filename, recognizers):
 
     for r in recognizers:
         if r["enable"]:
-            generator = Generator("recognizers/%s.cfg" % r["label"], "STMT", r["depth"])
+            generator = Generator("grammars/%s.cfg" % r["label"], "STMT", r["depth"])
             semantic = SemanticConstructor(r["semantic"])
 
             dataset += generate_dataset(r["label"], generator, semantic, r["frequency"])
