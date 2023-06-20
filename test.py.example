@@ -1,0 +1,26 @@
+from model import Generator, Recognizer, NaiveBayesClassifier, SemanticAnalyzer, SemanticConstructor, tokenize, chunk
+
+def test_recognizer():
+    #input_recognizer = "pengalaman_item"
+    #input_sentence = "pada januari 2019 sampai saat ini, saya memegang jabatan sebagai kepala departemen pengembangan teknologi di himpunan mahasiswa informatika"
+
+    #input_recognizer = "pengalaman_jobdesc"
+    #input_sentence = "tugas saya di sana adalah memimpin rapat divisi, merancang proker, bonding rutin supaya menjalin kekeluargaan, dan menyusun laporan mingguan"
+
+    recognizer = Recognizer("recognizers/%s.cfg" % input_recognizer)
+    tokens = tokenize(input_sentence)
+    syntax_tree = recognizer.recognize(tokens)
+
+    print(syntax_tree)
+    syntax_tree.draw()
+
+def test_classifier():
+    #test = "pada bulan maret tahun 2019 saya menjadi ketua divisi pemtek di himaster UNS"
+
+    classifier = NaiveBayesClassifier.load_model("data/model.json")
+    print(classifier.classify(tokenize(test), "probabilities"))
+    print(classifier.classify(tokenize(test), "chosen_probability"))
+
+if __name__ == "__main__":
+    #test_recognizer()
+    #test_classifier()
