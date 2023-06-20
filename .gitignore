@@ -1,5 +1,7 @@
 /__pycache__/
-/data/
+
+/data/**
+!/data/.gitkeep
 
 /input.txt
 /test.py
